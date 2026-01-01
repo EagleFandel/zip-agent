@@ -18,6 +18,8 @@ services:
       - gitea
     expose:
       - "8080"
+    labels:
+      - traefik.http.services.zip-agent.loadbalancer.server.port=8080
 
   gitea:
     image: gitea/gitea:latest
