@@ -1,0 +1,47 @@
+version: "3"
+
+services:
+  zip-agent:
+    build: .
+    container_name: zip-agent
+    restart: unless-stopped
+    environment:
+      - GITEA_URL=http://gitea:3000
+      - GITEA_TOKEN=${GITEA_TOKEN}
+      - GITEA_OWNER=${GITEA_OWNER:-nomo-admin}
+      - ZIP_AGENT_API_KEY=${ZIP_AGENT_API_KEY}
+      - PORT=8080
+    ports:
+      - "8082:8080"
+    networks:
+      - coolify
+    depends_on:
+      - gitea
+
+  gitea:
+    image: gitea/gitea:latest
+    container_name: gitea
+    environment:
+      - USER_UID=1000
+      - USER_GID=1000
+      - GITEA__database__DB_TYPE=sqlite3
+      - GITEA__server__ROOT_URL=${GITEA_PUBLIC_URL:-http://localhost:3001}/
+      - GITEA__server__HTTP_PORT=3000
+      - GITEA__server__DISABLE_SSH=true
+      - GITEA__service__DISABLE_REGISTRATION=true
+      - GITEA__service__REQUIRE_SIGNIN_VIEW=false
+      - GITEA__repository__DEFAULT_PRIVATE=public
+    restart: unless-stopped
+    volumes:
+      - gitea-data:/data
+    ports:
+      - "3001:3000"
+    networks:
+      - coolify
+
+volumes:
+  gitea-data:
+
+networks:
+  coolify:
+    external: true
