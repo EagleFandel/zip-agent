@@ -16,16 +16,22 @@ import (
 )
 
 var (
-	giteaURL   = os.Getenv("GITEA_URL")
-	giteaToken = os.Getenv("GITEA_TOKEN")
-	giteaOwner = os.Getenv("GITEA_OWNER")
-	apiKey     = os.Getenv("ZIP_AGENT_API_KEY")
-	workDir    = "/tmp/zip-agent"
+	giteaURL       = os.Getenv("GITEA_URL")
+	giteaPublicURL = os.Getenv("GITEA_PUBLIC_URL")
+	giteaToken     = os.Getenv("GITEA_TOKEN")
+	giteaOwner     = os.Getenv("GITEA_OWNER")
+	apiKey         = os.Getenv("ZIP_AGENT_API_KEY")
+	workDir        = "/tmp/zip-agent"
 )
 
 func main() {
 	if giteaURL == "" || giteaToken == "" || giteaOwner == "" {
 		log.Fatal("Missing required env: GITEA_URL, GITEA_TOKEN, GITEA_OWNER")
+	}
+	
+	// 如果没有设置公开 URL，使用内部 URL
+	if giteaPublicURL == "" {
+		giteaPublicURL = giteaURL
 	}
 
 	os.MkdirAll(workDir, 0755)
@@ -137,7 +143,8 @@ func processUpload(projectID string, zipData []byte) (string, error) {
 		return "", fmt.Errorf("git push failed: %w", err)
 	}
 
-	gitURL := fmt.Sprintf("%s/%s/%s.git", giteaURL, giteaOwner, repoName)
+	// 返回公开 URL 供 Coolify 使用
+	gitURL := fmt.Sprintf("%s/%s/%s.git", giteaPublicURL, giteaOwner, repoName)
 	return gitURL, nil
 }
 
