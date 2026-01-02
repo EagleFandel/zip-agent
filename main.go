@@ -173,6 +173,11 @@ func unzip(data []byte, dest string) error {
 			continue
 		}
 
+		// 过滤 macOS 垃圾文件
+		if shouldSkipFile(name) {
+			continue
+		}
+
 		path := filepath.Join(dest, name)
 
 		// 安全检查：防止路径遍历
@@ -207,6 +212,34 @@ func unzip(data []byte, dest string) error {
 	}
 
 	return nil
+}
+
+// shouldSkipFile 检查是否应该跳过该文件（macOS/Windows 垃圾文件）
+func shouldSkipFile(name string) bool {
+	// 获取文件名（不含路径）
+	baseName := filepath.Base(name)
+	
+	// macOS 资源分支文件（以 ._ 开头）
+	if strings.HasPrefix(baseName, "._") {
+		return true
+	}
+	
+	// macOS __MACOSX 目录
+	if strings.HasPrefix(name, "__MACOSX/") || name == "__MACOSX" {
+		return true
+	}
+	
+	// macOS .DS_Store
+	if baseName == ".DS_Store" {
+		return true
+	}
+	
+	// Windows Thumbs.db
+	if baseName == "Thumbs.db" || baseName == "desktop.ini" {
+		return true
+	}
+	
+	return false
 }
 
 func checkRepoExists(name string) (bool, error) {
